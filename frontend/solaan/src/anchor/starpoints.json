@@ -1,0 +1,330 @@
+{
+  "address": "F6C2p3QV4fcFpxGdV3bcjURgQEP1MM9dTru24qpyDXAw",
+  "metadata": {
+    "name": "starpoints",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Starpoints Solana Program"
+  },
+  "instructions": [
+    {
+      "name": "claim_badge",
+      "discriminator": [
+        111,
+        30,
+        18,
+        17,
+        228,
+        252,
+        239,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "badge_account",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "child",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "child_data",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "game_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "mint_starpoints",
+      "discriminator": [
+        143,
+        18,
+        149,
+        73,
+        6,
+        65,
+        135,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "child_token_account",
+          "writable": true
+        },
+        {
+          "name": "child",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "child_data",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "score",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "redeem_reward",
+      "discriminator": [
+        20,
+        221,
+        205,
+        146,
+        25,
+        114,
+        178,
+        198
+      ],
+      "accounts": [
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "child_token_account",
+          "writable": true
+        },
+        {
+          "name": "child",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "state",
+          "writable": true
+        },
+        {
+          "name": "child_data",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "reward_type",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "register_child",
+      "discriminator": [
+        147,
+        197,
+        225,
+        49,
+        210,
+        4,
+        21,
+        223
+      ],
+      "accounts": [
+        {
+          "name": "child_data",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "child",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "parent",
+          "type": "pubkey"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Badge",
+      "discriminator": [
+        40,
+        127,
+        162,
+        181,
+        177,
+        154,
+        1,
+        48
+      ]
+    },
+    {
+      "name": "ChildData",
+      "discriminator": [
+        125,
+        80,
+        224,
+        185,
+        254,
+        133,
+        182,
+        16
+      ]
+    },
+    {
+      "name": "ProgramState",
+      "discriminator": [
+        77,
+        209,
+        137,
+        229,
+        149,
+        67,
+        167,
+        230
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InsufficientPoints",
+      "msg": "Insufficient points for redemption"
+    }
+  ],
+  "types": [
+    {
+      "name": "Badge",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "child",
+            "type": "pubkey"
+          },
+          {
+            "name": "game_id",
+            "type": "u64"
+          },
+          {
+            "name": "awarded_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ChildData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "child",
+            "type": "pubkey"
+          },
+          {
+            "name": "parent",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_points",
+            "type": "u64"
+          },
+          {
+            "name": "badge_count",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProgramState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_badges",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ]
+}
