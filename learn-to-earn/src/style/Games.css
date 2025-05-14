@@ -1,0 +1,31 @@
+.games {
+  padding: 20px;
+}
+
+.games h1 {
+  font-size: 32px;
+  color: #004d40;
+}
+
+.games ul {
+  list-style: none;
+  padding: 0;
+}
+
+.games li {
+  margin: 10px 0;
+}
+
+.games button {
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #80cbc4;
+  border: none;
+  border-radius: 4px;
+}
+
+.games p {
+  margin-top: 20px;
+  color: #00796b;
+}

@@ -1,0 +1,24 @@
+.dashboard {
+  padding: 20px;
+}
+
+.dashboard h1 {
+  font-size: 36px;
+  color: #6a1b9a;
+}
+
+.dashboard section {
+  margin-top: 20px;
+}
+
+.dashboard h2 {
+  color: #8e24aa;
+}
+
+.dashboard button {
+  padding: 10px 20px;
+  background-color: #ce93d8;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
