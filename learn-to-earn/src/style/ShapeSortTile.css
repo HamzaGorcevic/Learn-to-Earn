@@ -1,0 +1,47 @@
+.shape-tile {
+  width: 60px;
+  height: 60px;
+  margin: 5px;
+  cursor: grab;
+}
+
+.shape-tile.circle {
+  border-radius: 50%;
+}
+
+.shape-tile.square {
+  border-radius: 0;
+}
+
+.shape-tile.triangle {
+  width: 0;
+  height: 0;
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 60px solid;
+  background: none !important;
+}
+
+.shape-tile.red {
+  background-color: red;
+}
+
+.shape-tile.blue {
+  background-color: blue;
+}
+
+.shape-tile.yellow {
+  background-color: yellow;
+}
+
+.shape-tile.triangle.red {
+  border-bottom-color: red;
+}
+
+.shape-tile.triangle.blue {
+  border-bottom-color: blue;
+}
+
+.shape-tile.triangle.yellow {
+  border-bottom-color: yellow;
+}

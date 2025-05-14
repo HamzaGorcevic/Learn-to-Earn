@@ -6,25 +6,25 @@ type ColorType = "red" | "blue" | "yellow" | "unknown";
 interface ColorMatchTileProps {
   actualColor: Exclude<ColorType, "unknown">;
   isRevealed: boolean;
+  isMatched: boolean;
   onClick: () => void;
 }
 
 export default function ColorMatchTile({
   actualColor,
   isRevealed,
+  isMatched,
   onClick,
 }: ColorMatchTileProps) {
   const [displayColor, setDisplayColor] = useState<ColorType>("unknown");
 
   useEffect(() => {
-    if (isRevealed) {
+    if (isMatched || isRevealed) {
       setDisplayColor(actualColor);
-      const timer = setTimeout(() => {
-        setDisplayColor("unknown");
-      }, 2000);
-      return () => clearTimeout(timer);
+    } else {
+      setDisplayColor("unknown");
     }
-  }, [isRevealed, actualColor]);
+  }, [isRevealed, isMatched, actualColor]);
 
   return <div className={`tile ${displayColor}`} onClick={onClick}></div>;
 }
