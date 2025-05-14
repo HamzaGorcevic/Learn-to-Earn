@@ -1,0 +1,40 @@
+.logic-tile {
+  width: 80px;
+  height: 60px;
+  margin: 10px;
+  border: 2px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  background-color: #eee;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 8px;
+}
+
+.logic-tile.input {
+  background-color: #d1e7ff;
+}
+
+.logic-tile.input.active {
+  background-color: #76c7ff;
+}
+
+.logic-tile.output {
+  background-color: #ffe0b2;
+}
+
+.logic-tile.output.active {
+  background-color: #ffd54f;
+}
+
+.logic-tile.gate {
+  background-color: #c8e6c9;
+}
+
+.win-text {
+  text-align: center;
+  margin-top: 20px;
+  color: green;
+}

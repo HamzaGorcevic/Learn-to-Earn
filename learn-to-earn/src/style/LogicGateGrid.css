@@ -1,0 +1,12 @@
+.logic-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.logic-grid .row {
+  display: flex;
+  gap: 20px;
+  margin: 10px 0;
+}
