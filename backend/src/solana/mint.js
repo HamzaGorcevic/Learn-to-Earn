@@ -1,60 +1,54 @@
-import BN from "bn.js";
 import * as anchor from "@coral-xyz/anchor";
+import { PublicKey } from "@solana/web3.js";
+import idlJSON from "./idl.js";
 import connection from "./connection.js";
 import wallet from "./wallet.js";
-import idlJSON from "./idl.js";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from "@solana/spl-token";
 
-const PROGRAM_ID = new PublicKey(
-    "F6C2p3QV4fcFpxGdV3bcjURgQEP1MM9dTru24qpyDXAw"
-);
-
-const provider = new anchor.AnchorProvider(
-    connection,
-    new anchor.Wallet(wallet),
-    { preflightCommitment: "confirmed" }
-);
-
-const program = new anchor.Program(idlJSON, provider);
-
-export const mintStarpoints = async (walletAddress, score = 10) => {
+export const mintStarpoints = async (userAddress, score) => {
     try {
-        const scoreBN = new BN(score.toString());
-        const userPubkey = new PublicKey(walletAddress);
-        const mintPubkey = new PublicKey(
-            "J1wY1TdDZLdNjSXvhQEivUCKtpKHUVySdTjEoyryRr97"
+        const provider = new anchor.AnchorProvider(
+            connection,
+            new anchor.Wallet(wallet),
+            { preflightCommitment: "confirmed" }
         );
-        const childTokenAccount = await getAssociatedTokenAddress(
-            mintPubkey,
-            userPubkey
-        );
-        const [childDataAccount] = await PublicKey.findProgramAddress(
-            [Buffer.from("child_data"), userPubkey.toBuffer()],
-            PROGRAM_ID
-        );
-        const [stateAccount] = await PublicKey.findProgramAddress(
+        const program = new anchor.Program(idlJSON, provider);
+
+        const userPubkey = new PublicKey(userAddress);
+        const mint = new PublicKey(process.env.MINT_ADDRESS);
+        const [statePda] = PublicKey.findProgramAddressSync(
             [Buffer.from("state")],
-            PROGRAM_ID
+            program.programId
         );
+        const [userDataPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("user"), userPubkey.toBuffer()],
+            program.programId
+        );
+
+        const userTokenAccount = await connection.getTokenAccountsByOwner(
+            userPubkey,
+            { mint }
+        );
+        if (!userTokenAccount.value.length) {
+            return { success: false, error: "User token account not found" };
+        }
+        const userTokenAccountPubkey = userTokenAccount.value[0].pubkey;
 
         const tx = await program.methods
-            .mintStarpoints(scoreBN)
+            .mintStarpoints(new anchor.BN(score))
             .accounts({
-                mint: mintPubkey,
-                childTokenAccount,
-                child: userPubkey,
-                authority: provider.wallet.publicKey,
-                state: stateAccount,
-                childData: childDataAccount,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                mint,
+                userTokenAccount: userTokenAccountPubkey,
+                user: userPubkey,
+                authority: wallet.publicKey,
+                tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+                state: statePda,
+                userData: userDataPda,
             })
+            .signers([wallet])
             .rpc();
 
-        console.log("✅ Transaction sent:", tx);
         return { success: true, tx };
     } catch (err) {
-        console.error("❌ Error minting starpoints:", err);
         return { success: false, error: err.message };
     }
 };

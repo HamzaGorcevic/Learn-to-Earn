@@ -1,15 +1,18 @@
-// front-end/src/anchor/setup.js
-import { AnchorProvider, Program } from "@coral-xyz/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import idl from "../anchor/idl"; // Copy target/idl/starpoints.json here
 import { PublicKey } from "@solana/web3.js";
-import idl from "./idl";
 
-const programId = new PublicKey("F6C2p3QV4fcFpxGdV3bcjURgQEP1MM9dTru24qpyDXAw");
-
-export const getProgram = (connection, walletAdapter) => {
-    const provider = new AnchorProvider(connection, walletAdapter, {
-        preflightCommitment: "confirmed",
-    });
+export const getProgram = (connection, wallet) => {
+    console.log(wallet);
+    const provider = new anchor.AnchorProvider(
+        connection,
+        wallet,
+        anchor.AnchorProvider.defaultOptions()
+    );
+    anchor.setProvider(provider);
 
     const program = new Program(idl, provider);
+
     return program;
 };

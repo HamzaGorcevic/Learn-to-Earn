@@ -6,14 +6,14 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-starpoints = "CG7r4qif3QRTZPgW661u2pwhnRL687UjFrgDcYPCcW7u"
+starpoints = "3u6Av28TMrktWjba344FN5Db8DptdrYRcFtHE7BhbBFr"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "devnet"
-wallet = "/mnt/c/Users/gorce/Desktop/solana-hackathon/backend/src/solana/wallet1.json"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run mocha -t 1000000 tests/"

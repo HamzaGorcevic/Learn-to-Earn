@@ -1,5 +1,5 @@
 const idl = {
-    address: "CG7r4qif3QRTZPgW661u2pwhnRL687UjFrgDcYPCcW7u",
+    address: "3u6Av28TMrktWjba344FN5Db8DptdrYRcFtHE7BhbBFr",
     metadata: {
         name: "starpoints",
         version: "0.1.0",
@@ -7,6 +7,47 @@ const idl = {
         description: "Starpoints Solana Program",
     },
     instructions: [
+        {
+            name: "claim_badge",
+            discriminator: [111, 30, 18, 17, 228, 252, 239, 102],
+            accounts: [
+                {
+                    name: "badge",
+                    writable: true,
+                    pda: {
+                        seeds: [
+                            {
+                                kind: "const",
+                                value: [98, 97, 100, 103, 101],
+                            },
+                            {
+                                kind: "account",
+                                path: "user",
+                            },
+                            {
+                                kind: "arg",
+                                path: "game_id",
+                            },
+                        ],
+                    },
+                },
+                {
+                    name: "user",
+                    writable: true,
+                    signer: true,
+                },
+                {
+                    name: "system_program",
+                    address: "11111111111111111111111111111111",
+                },
+            ],
+            args: [
+                {
+                    name: "game_id",
+                    type: "u64",
+                },
+            ],
+        },
         {
             name: "initialize",
             discriminator: [175, 175, 109, 31, 13, 152, 155, 237],
@@ -129,11 +170,19 @@ const idl = {
                     name: "system_program",
                     address: "11111111111111111111111111111111",
                 },
+                {
+                    name: "state",
+                    writable: true,
+                },
             ],
             args: [],
         },
     ],
     accounts: [
+        {
+            name: "Badge",
+            discriminator: [40, 127, 162, 181, 177, 154, 1, 48],
+        },
         {
             name: "ProgramState",
             discriminator: [77, 209, 137, 229, 149, 67, 167, 230],
@@ -151,6 +200,26 @@ const idl = {
         },
     ],
     types: [
+        {
+            name: "Badge",
+            type: {
+                kind: "struct",
+                fields: [
+                    {
+                        name: "user",
+                        type: "pubkey",
+                    },
+                    {
+                        name: "game_id",
+                        type: "u64",
+                    },
+                    {
+                        name: "awarded_at",
+                        type: "i64",
+                    },
+                ],
+            },
+        },
         {
             name: "ProgramState",
             type: {

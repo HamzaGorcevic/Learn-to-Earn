@@ -1,111 +1,88 @@
-// front-end/src/components/RegisterUser.jsx
-import React, { useState, useEffect } from "react";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { PublicKey, SystemProgram } from "@solana/web3.js";
+import React, { useState } from "react";
+import {
+    useWallet,
+    useConnection,
+    useAnchorWallet,
+} from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { PublicKey, SystemProgram, Keypair } from "@solana/web3.js"; // ← import Keypair
 import { getProgram } from "../anchor/setup";
 
-export default function RegisterUser() {
-    const { wallet, publicKey, connected, signTransaction } = useWallet();
+export default function ConnectWallet() {
+    const { publicKey, connected } = useWallet();
+    const wallet = useAnchorWallet();
     const { connection } = useConnection();
-    const [name, setName] = useState("");
     const [message, setMessage] = useState("");
 
-    // Pre-fill user name with connected wallet's public key
-    useEffect(() => {
-        if (publicKey) {
-            setName(publicKey.toString());
-        } else {
-            setName("");
-        }
-    }, [publicKey]);
-
-    const handleRegister = async () => {
-        console.log(
-            "Connected:",
-            connected,
-            "PublicKey:",
-            publicKey?.toString(),
-            "SignTransaction:",
-            !!signTransaction
-        );
-
-        if (!connected || !publicKey || !wallet || !signTransaction) {
-            setMessage(
-                "Please connect your wallet and ensure it supports transaction signing."
-            );
-            return;
-        }
-        if (!name) {
-            setMessage("Please enter a name.");
+    const handleConnectAndRegister = async () => {
+        if (!connected || !publicKey || !wallet) {
+            setMessage("Please connect your wallet.");
             return;
         }
 
         try {
-            console.log("Fetching program...");
-            const program = getProgram(connection, wallet.adapter);
-            console.log("Program initialized:", program.programId.toString());
+            const program = getProgram(connection, wallet);
 
-            // Validate user wallet address
-            let userPubkey;
-            try {
-                userPubkey = new PublicKey(publicKey.toString());
-            } catch (err) {
-                setMessage("Invalid wallet address.");
-                return;
-            }
+            // 1) generate a new Keypair for user_data
+            const userDataKeypair = Keypair.generate();
 
-            console.log("Sending register_user transaction...");
+            // 2) compute your existing state PDA as before
+            const [statePda] = PublicKey.findProgramAddressSync(
+                [Buffer.from("state")],
+                program.programId
+            );
 
+            // 3) call registerUser, passing userData = keypair.pubkey,
+            //    and including that keypair in .signers()
             const tx = await program.methods
-                .registerUser() // Register the user with no parent-child logic
+                .registerUser()
                 .accounts({
-                    userData: userPubkey,
+                    userData: userDataKeypair.publicKey,
                     user: publicKey,
                     systemProgram: SystemProgram.programId,
+                    state: statePda,
                 })
+                .signers([userDataKeypair]) // ← include the new keypair
                 .rpc();
 
             console.log("Transaction signature:", tx);
 
-            // Send data to backend
+            // …then your backend call as before…
             const response = await fetch("http://localhost:3000/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    userWallet: publicKey.toString(),
-                    name,
+                    walletAddress: publicKey.toString(),
+                    name: publicKey.toString(),
+                    parentWalletAddress:
+                        "61jYfLtb9SEreNV2G6XB1MUUdr7PHnCuGme3UhmBMsxj",
                     tx,
                 }),
             });
             const result = await response.json();
-            if (!response.ok) {
-                throw new Error(
-                    result.error || "Failed to register in database"
-                );
-            }
+            if (!response.ok)
+                throw new Error(result.error || "Failed to register");
 
-            setMessage(`User registered! Transaction: ${tx}`);
+            setMessage(
+                `Connected and registered! User ID: ${result.userId}, Tx: ${tx}`
+            );
         } catch (err) {
-            console.error("Registration error:", err);
+            console.error("Error:", err);
+            if (err.logs) console.error("Program logs:", err.logs);
             setMessage(`Error: ${err.message}`);
         }
     };
 
     return (
         <div className="mt-4">
-            <h2 className="text-lg mb-2">Register User</h2>
-            <input
-                className="border p-2 mb-2 w-full"
-                type="text"
-                placeholder="User Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-            />
+            <h2 className="text-lg mb-2">Connect to STARPOINTS</h2>
+            <WalletMultiButton />
             <button
-                className="bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={handleRegister}
+                className="bg-blue-500 text-white px-4 py-2 rounded mt-2"
+                onClick={handleConnectAndRegister}
+                disabled={!connected}
             >
-                Register
+                Connect
             </button>
             {message && <p className="mt-2">{message}</p>}
         </div>

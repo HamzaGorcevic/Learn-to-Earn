@@ -26,27 +26,25 @@ const supabase = createClient(
 );
 
 app.post("/register", async (req, res) => {
-    console.log("we hit register");
-    const { walletAddress, name, tx } = req.body;
+    const { walletAddress, name, parentWalletAddress, tx } = req.body;
     if (!walletAddress || !name || !tx) {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
     try {
-        // Verify transaction on Solana
         const txResult = await connection.getTransaction(tx, {
             commitment: "confirmed",
         });
-        if (!txResult || txResult.meta.err) {
+        if (!txResult || txResult.meta?.err) {
             throw new Error("Transaction failed or not found");
         }
 
-        // Save to Supabase
         const userId = uuidv4();
         const { error } = await supabase.from("users").insert({
             id: userId,
             wallet_address: walletAddress,
             name,
+            parent_wallet_address: parentWalletAddress || null,
         });
 
         if (error) throw error;
@@ -86,7 +84,7 @@ app.post("/mint", async (req, res) => {
         const { error } = await supabase
             .from("game_sessions")
             .insert({ user_id: userId, game_id: gameId, score, success });
-        if (error) throw new Error(error.message);
+        if (error) throw error;
 
         res.status(200).json({
             message: "Game complete, STARPOINTS minted and badge claimed!",
@@ -113,7 +111,7 @@ app.get("/user/:id/badges", async (req, res) => {
         const badgeAccounts = await program.account.badge.all([
             {
                 memcmp: {
-                    offset: 8, // Discriminator offset
+                    offset: 8,
                     bytes: user.wallet_address,
                 },
             },
@@ -144,7 +142,7 @@ app.post("/redeem", async (req, res) => {
         const { error } = await supabase
             .from("reward_claims")
             .insert({ user_id: userId, reward_type: rewardType, amount });
-        if (error) throw new Error(error.message);
+        if (error) throw error;
 
         res.status(200).json({
             message: `Redeemed ${amount} STARPOINTS for ${rewardType}`,

@@ -1,13 +1,12 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Mint, Token, TokenAccount};
+use anchor_spl::token::{self, Burn, Mint, MintTo, Token, TokenAccount};
 
-declare_id!("CG7r4qif3QRTZPgW661u2pwhnRL687UjFrgDcYPCcW7u");
+declare_id!("3u6Av28TMrktWjba344FN5Db8DptdrYRcFtHE7BhbBFr");
 
 #[program]
 pub mod starpoints {
     use super::*;
 
-    // Initialize the state of the program with the authority (admin)
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let state = &mut ctx.accounts.state;
         state.authority = ctx.accounts.authority.key();
@@ -15,18 +14,18 @@ pub mod starpoints {
         Ok(())
     }
 
-    // Register a new user (no child or parent involved, just a user)
     pub fn register_user(ctx: Context<RegisterUser>) -> Result<()> {
         let user_data = &mut ctx.accounts.user_data;
+        let state = &mut ctx.accounts.state;
         user_data.user = ctx.accounts.user.key();
         user_data.total_points = 0;
+        state.total_users += 1;
         msg!("User registered: {}", ctx.accounts.user.key());
         Ok(())
     }
 
-    // Mint points for the user
     pub fn mint_starpoints(ctx: Context<MintStarpoints>, score: u64) -> Result<()> {
-        let cpi_accounts = token::MintTo {
+        let cpi_accounts = MintTo {
             mint: ctx.accounts.mint.to_account_info(),
             to: ctx.accounts.user_token_account.to_account_info(),
             authority: ctx.accounts.authority.to_account_info(),
@@ -42,14 +41,23 @@ pub mod starpoints {
         Ok(())
     }
 
-    // Redeem points for a reward
+    pub fn claim_badge(ctx: Context<ClaimBadge>, game_id: u64) -> Result<()> {
+        let badge = &mut ctx.accounts.badge;
+        badge.user = ctx.accounts.user.key();
+        badge.game_id = game_id;
+        badge.awarded_at = Clock::get()?.unix_timestamp;
+
+        msg!("Badge claimed for game {} by {}", game_id, ctx.accounts.user.key());
+        Ok(())
+    }
+
     pub fn redeem_reward(ctx: Context<RedeemReward>, amount: u64, reward_type: String) -> Result<()> {
         require!(
             ctx.accounts.user_data.total_points >= amount,
             GameError::InsufficientPoints
         );
 
-        let cpi_accounts = token::Burn {
+        let cpi_accounts = Burn {
             mint: ctx.accounts.mint.to_account_info(),
             from: ctx.accounts.user_token_account.to_account_info(),
             authority: ctx.accounts.user.to_account_info(),
@@ -82,6 +90,8 @@ pub struct RegisterUser<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     pub system_program: Program<'info, System>,
+    #[account(mut)]
+    pub state: Account<'info, ProgramState>,
 }
 
 #[derive(Accounts)]
@@ -99,6 +109,22 @@ pub struct MintStarpoints<'info> {
     pub state: Account<'info, ProgramState>,
     #[account(mut)]
     pub user_data: Account<'info, UserData>,
+}
+
+#[derive(Accounts)]
+#[instruction(game_id: u64)]
+pub struct ClaimBadge<'info> {
+    #[account(
+        init,
+        payer = user,
+        space = 8 + 32 + 8 + 8,
+        seeds = [b"badge", user.key().as_ref(), game_id.to_le_bytes().as_ref()],
+        bump
+    )]
+    pub badge: Account<'info, Badge>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
@@ -126,6 +152,13 @@ pub struct ProgramState {
 pub struct UserData {
     pub user: Pubkey,
     pub total_points: u64,
+}
+
+#[account]
+pub struct Badge {
+    pub user: Pubkey,
+    pub game_id: u64,
+    pub awarded_at: i64,
 }
 
 #[error_code]

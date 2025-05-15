@@ -1,15 +1,16 @@
-import web3 from "@solana/web3.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { Keypair } from "@solana/web3.js";
+import bs58 from "bs58";
+import dotenv from "dotenv";
+dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-console.log(__filename);
-const __dirname = path.dirname(__filename);
+// Ensure PRIVATE_KEY is loaded and is a string
+const privateKey = process.env.PRIVATE_KEY;
 
-const secretPath = path.join(__dirname, "wallet1.json");
-const secret = JSON.parse(fs.readFileSync(secretPath));
+if (!privateKey || typeof privateKey !== "string") {
+    throw new Error(
+        "PRIVATE_KEY environment variable is not set or is not a string."
+    );
+}
 
-const wallet = web3.Keypair.fromSecretKey(new Uint8Array(secret));
-
-export default wallet;
+const keypair = Keypair.fromSecretKey(bs58.decode(privateKey));
+export default keypair;
